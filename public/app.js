@@ -7,7 +7,9 @@
 /* ----------------------------------------------------------------
    CONFIG — Your PayHero Backend
    ---------------------------------------------------------------- */
-const API_BASE_URL = 'http://localhost:3000/api/payhero';
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ?
+    'http://localhost:3000/api/payhero' :
+    '/api';
 
 /* ----------------------------------------------------------------
    DATA — Products / Tickets / Merchandise
@@ -15,7 +17,7 @@ const API_BASE_URL = 'http://localhost:3000/api/payhero';
 const STORE = {
     name: 'SUMMER TIDES FESTIVAL',
     description: "Africa's #1 Beach Festival 🏝️\nOfficial store for Summer Tides Festival",
-    phone: '0720000000',
+    phone: '+254 741492515',
     email: 'info@airbeatglobal.com',
     socials: {
         instagram: 'https://www.instagram.com/summertides.fest/',
@@ -33,13 +35,13 @@ const PRODUCTS = [{
         type: 'event',
         name: 'Early Bird Ticket — Summer Tides Festival 2026',
         subtitle: 'General Access · Limited Availability',
-        price: 2000,
+        price: 2500,
         image: 'images/ticket_early_bird.png',
         description: 'Secure your spot at Africa\'s #1 Beach Festival at the best price.',
         variants: ['Single Entry'],
         badge: 'Early Bird',
         available: true,
-        date: 'july 2-4, 2026',
+        date: 'December 27, 2026',
         location: 'Mombasa, Kenya',
     },
     {
@@ -48,13 +50,13 @@ const PRODUCTS = [{
         type: 'event',
         name: 'General Admission — Summer Tides Festival 2026',
         subtitle: 'General Access · Beach Festival',
-        price: 2000,
+        price: 3500,
         image: 'images/ticket_regular.png',
         description: 'Join Africa\'s #1 Beach Festival with General Admission access.',
         variants: ['Single Entry'],
         badge: 'General',
         available: true,
-        date: 'july 2-4, 2026',
+        date: 'December 27, 2026',
         location: 'Mombasa, Kenya',
     },
     {
@@ -63,13 +65,13 @@ const PRODUCTS = [{
         type: 'event',
         name: 'VIP Ticket — Summer Tides Festival 2026',
         subtitle: 'VIP Access · Exclusive Lounge',
-        price: 3500,
+        price: 7500,
         image: 'images/ticket_vip.png',
         description: 'Experience Summer Tides Festival like never before with VIP access.',
         variants: ['Single Entry'],
         badge: 'VIP',
         available: true,
-        date: 'july 2-4, 2026',
+        date: 'December 27, 2026',
         location: 'Mombasa, Kenya',
     },
     {
@@ -226,15 +228,15 @@ function renderCartItems() {
       </div>
     </div>`).join('');
 
-  renderCartFooter();
+    renderCartFooter();
 }
 
 function renderCartFooter() {
-  const footer = $('#cart-footer');
-  if (!footer) return;
-  const total = getCartTotal();
-  const hasItems = state.cart.length > 0;
-  footer.innerHTML = `
+    const footer = $('#cart-footer');
+    if (!footer) return;
+    const total = getCartTotal();
+    const hasItems = state.cart.length > 0;
+    footer.innerHTML = `
     <div class="cart-summary">
       <div class="cart-summary-row">
         <span>Subtotal</span>
@@ -259,99 +261,99 @@ function renderCartFooter() {
    OPEN / CLOSE MODALS
    ---------------------------------------------------------------- */
 function openSearch() {
-  state.searchOpen = true;
-  $('#search-overlay').classList.add('open');
-  setTimeout(() => $('#search-input').focus(), 100);
+    state.searchOpen = true;
+    $('#search-overlay').classList.add('open');
+    setTimeout(() => $('#search-input').focus(), 100);
 }
 
 function closeSearch() {
-  state.searchOpen = false;
-  $('#search-overlay').classList.remove('open');
-  $('#search-input').value = '';
-  renderSearchResults('');
+    state.searchOpen = false;
+    $('#search-overlay').classList.remove('open');
+    $('#search-input').value = '';
+    renderSearchResults('');
 }
 
 function openCart() {
-  state.cartOpen = true;
-  $('#cart-drawer').classList.add('open');
-  $('#drawer-backdrop').classList.add('open');
-  document.body.style.overflow = 'hidden';
+    state.cartOpen = true;
+    $('#cart-drawer').classList.add('open');
+    $('#drawer-backdrop').classList.add('open');
+    document.body.style.overflow = 'hidden';
 }
 
 function closeCart() {
-  state.cartOpen = false;
-  $('#cart-drawer').classList.remove('open');
-  $('#drawer-backdrop').classList.remove('open');
-  document.body.style.overflow = '';
+    state.cartOpen = false;
+    $('#cart-drawer').classList.remove('open');
+    $('#drawer-backdrop').classList.remove('open');
+    document.body.style.overflow = '';
 }
 
 function openProductModal(productId) {
-  const product = PRODUCTS.find(p => p.id === productId);
-  if (!product) return;
-  state.selectedProduct = product;
-  state.selectedVariant = product.variants[0] || null;
-  state.modalQty = 1;
-  renderProductModal(product);
-  state.productModalOpen = true;
-  $('#product-modal-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+    const product = PRODUCTS.find(p => p.id === productId);
+    if (!product) return;
+    state.selectedProduct = product;
+    state.selectedVariant = product.variants[0] || null;
+    state.modalQty = 1;
+    renderProductModal(product);
+    state.productModalOpen = true;
+    $('#product-modal-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
 }
 
 function closeProductModal() {
-  state.productModalOpen = false;
-  $('#product-modal-overlay').classList.remove('open');
-  if (!state.cartOpen && !state.checkoutOpen) document.body.style.overflow = '';
+    state.productModalOpen = false;
+    $('#product-modal-overlay').classList.remove('open');
+    if (!state.cartOpen && !state.checkoutOpen) document.body.style.overflow = '';
 }
 
 function openCheckout() {
-  closeCart();
-  if (state.cart.length === 0) { toast('Your cart is empty', 'error'); return; }
-  state.checkoutStep = 1;
-  state.checkoutComplete = false;
-  state.paymentMethod = 'mpesa';
-  state.paymentAttempted = false;
-  renderCheckoutModal();
-  state.checkoutOpen = true;
-  $('#checkout-modal-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+    closeCart();
+    if (state.cart.length === 0) { toast('Your cart is empty', 'error'); return; }
+    state.checkoutStep = 1;
+    state.checkoutComplete = false;
+    state.paymentMethod = 'mpesa';
+    state.paymentAttempted = false;
+    renderCheckoutModal();
+    state.checkoutOpen = true;
+    $('#checkout-modal-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
 }
 
 function closeCheckout() {
-  state.checkoutOpen = false;
-  $('#checkout-modal-overlay').classList.remove('open');
-  document.body.style.overflow = '';
-  
-  document.querySelectorAll('.checkout-step-content').forEach(el => el.style.display = 'none');
-  const step1 = document.getElementById('checkout-step-1');
-  const step2 = document.getElementById('checkout-step-2');
-  const step3 = document.getElementById('checkout-step-3');
-  const step4 = document.getElementById('checkout-step-4');
-  const step5 = document.getElementById('checkout-step-5');
-  const step6 = document.getElementById('checkout-step-6');
-  if (step1) step1.style.display = 'block';
-  if (step2) step2.style.display = 'none';
-  if (step3) step3.style.display = 'none';
-  if (step4) step4.style.display = 'none';
-  if (step5) step5.style.display = 'none';
-  if (step6) step6.style.display = 'none';
+    state.checkoutOpen = false;
+    $('#checkout-modal-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+
+    document.querySelectorAll('.checkout-step-content').forEach(el => el.style.display = 'none');
+    const step1 = document.getElementById('checkout-step-1');
+    const step2 = document.getElementById('checkout-step-2');
+    const step3 = document.getElementById('checkout-step-3');
+    const step4 = document.getElementById('checkout-step-4');
+    const step5 = document.getElementById('checkout-step-5');
+    const step6 = document.getElementById('checkout-step-6');
+    if (step1) step1.style.display = 'block';
+    if (step2) step2.style.display = 'none';
+    if (step3) step3.style.display = 'none';
+    if (step4) step4.style.display = 'none';
+    if (step5) step5.style.display = 'none';
+    if (step6) step6.style.display = 'none';
 }
 
 function openTerms() {
-  $('#terms-modal-overlay').classList.add('open');
-  state.termsOpen = true;
+    $('#terms-modal-overlay').classList.add('open');
+    state.termsOpen = true;
 }
 
 function closeTerms() {
-  $('#terms-modal-overlay').classList.remove('open');
-  state.termsOpen = false;
+    $('#terms-modal-overlay').classList.remove('open');
+    state.termsOpen = false;
 }
 
 /* ----------------------------------------------------------------
    PRODUCT MODAL RENDER
    ---------------------------------------------------------------- */
 function renderProductModal(product) {
-  const overlay = $('#product-modal-overlay');
-  overlay.innerHTML = `
+    const overlay = $('#product-modal-overlay');
+    overlay.innerHTML = `
     <div class="product-modal">
       <div class="product-modal-inner">
         <div class="product-modal-img-wrapper">
@@ -394,55 +396,55 @@ function renderProductModal(product) {
 }
 
 function selectVariant(v) {
-  state.selectedVariant = v;
-  $$('.variant-option').forEach(btn => btn.classList.toggle('selected', btn.textContent === v));
+    state.selectedVariant = v;
+    $$('.variant-option').forEach(btn => btn.classList.toggle('selected', btn.textContent === v));
 }
 
 function adjustModalQty(delta) {
-  state.modalQty = Math.max(1, state.modalQty + delta);
-  const display = $('#modal-qty-display');
-  if (display) display.textContent = state.modalQty;
-  const btn = document.querySelector('.product-modal-content .btn-primary');
-  if (btn && state.selectedProduct) {
-    const total = (state.selectedProduct.price * state.modalQty).toLocaleString();
-    btn.innerHTML = `
+    state.modalQty = Math.max(1, state.modalQty + delta);
+    const display = $('#modal-qty-display');
+    if (display) display.textContent = state.modalQty;
+    const btn = document.querySelector('.product-modal-content .btn-primary');
+    if (btn && state.selectedProduct) {
+        const total = (state.selectedProduct.price * state.modalQty).toLocaleString();
+        btn.innerHTML = `
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/></svg>
       Add to Cart · ${STORE.currencySymbol} ${total}`;
-  }
+    }
 }
 
 function addCurrentToCart() {
-  if (!state.selectedProduct) return;
-  if (state.selectedProduct.variants.length > 1 && !state.selectedVariant) {
-    toast('Please select a size/type', 'error');
-    return;
-  }
-  addToCart(state.selectedProduct, state.selectedVariant, state.modalQty);
-  closeProductModal();
-  openCart();
+    if (!state.selectedProduct) return;
+    if (state.selectedProduct.variants.length > 1 && !state.selectedVariant) {
+        toast('Please select a size/type', 'error');
+        return;
+    }
+    addToCart(state.selectedProduct, state.selectedVariant, state.modalQty);
+    closeProductModal();
+    openCart();
 }
 
 /* ----------------------------------------------------------------
    SEARCH
    ---------------------------------------------------------------- */
 function renderSearchResults(query) {
-  const container = $('#search-results');
-  if (!container) return;
-  const q = query.trim().toLowerCase();
-  if (!q) {
-    container.innerHTML = `<div class="search-empty">Start typing to search for events or products…</div>`;
-    return;
-  }
-  const results = PRODUCTS.filter(p =>
-    p.name.toLowerCase().includes(q) ||
-    p.subtitle.toLowerCase().includes(q) ||
-    p.description.toLowerCase().includes(q)
-  );
-  if (results.length === 0) {
-    container.innerHTML = `<div class="search-empty">No results found for "<strong>${query}</strong>"</div>`;
-    return;
-  }
-  container.innerHTML = results.map(p => `
+    const container = $('#search-results');
+    if (!container) return;
+    const q = query.trim().toLowerCase();
+    if (!q) {
+        container.innerHTML = `<div class="search-empty">Start typing to search for events or products…</div>`;
+        return;
+    }
+    const results = PRODUCTS.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        p.subtitle.toLowerCase().includes(q) ||
+        p.description.toLowerCase().includes(q)
+    );
+    if (results.length === 0) {
+        container.innerHTML = `<div class="search-empty">No results found for "<strong>${query}</strong>"</div>`;
+        return;
+    }
+    container.innerHTML = results.map(p => `
     <div class="search-result-item" onclick="closeSearch(); openProductModal(${p.id})">
       <img class="search-result-img" src="${p.image}" alt="${p.name}" onerror="this.src='https://placehold.co/48x48/e2e8f0/94a3b8?text=IMG'">
       <div class="search-result-info">
@@ -456,9 +458,9 @@ function renderSearchResults(query) {
    PRODUCTS GRID
    ---------------------------------------------------------------- */
 function renderSkeletons() {
-  const grid = $('#products-grid');
-  if (!grid) return;
-  grid.innerHTML = Array(4).fill(0).map(() => `
+    const grid = $('#products-grid');
+    if (!grid) return;
+    grid.innerHTML = Array(4).fill(0).map(() => `
     <div class="skeleton-card">
       <div class="skeleton skeleton-img"></div>
       <div class="skeleton-body">
@@ -470,21 +472,21 @@ function renderSkeletons() {
 }
 
 function renderProducts(category = 'all') {
-  const grid = $('#products-grid');
-  if (!grid) return;
-  const filtered = category === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.category === category);
+    const grid = $('#products-grid');
+    if (!grid) return;
+    const filtered = category === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.category === category);
 
-  if (filtered.length === 0) {
-    grid.innerHTML = `
+    if (filtered.length === 0) {
+        grid.innerHTML = `
       <div class="empty-state">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 16.318A4.486 4.486 0 0012.016 15a4.486 4.486 0 00-3.198 1.318M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"/></svg>
         <h3>No items found</h3>
         <p>Try a different category</p>
       </div>`;
-    return;
-  }
+        return;
+    }
 
-  grid.innerHTML = filtered.map(p => `
+    grid.innerHTML = filtered.map(p => `
     <div class="product-card slide-up" onclick="openProductModal(${p.id})" id="product-${p.id}">
       <div class="product-card-img-wrapper">
         <img class="product-card-img" src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.src='https://placehold.co/400x400/e2e8f0/94a3b8?text=IMG'">
@@ -505,25 +507,25 @@ function renderProducts(category = 'all') {
 }
 
 function quickAdd(productId) {
-  const product = PRODUCTS.find(p => p.id === productId);
-  if (!product) return;
-  if (product.variants.length > 1) {
-    openProductModal(productId);
-    return;
-  }
-  addToCart(product, product.variants[0] || null, 1);
+    const product = PRODUCTS.find(p => p.id === productId);
+    if (!product) return;
+    if (product.variants.length > 1) {
+        openProductModal(productId);
+        return;
+    }
+    addToCart(product, product.variants[0] || null, 1);
 }
 
 /* ----------------------------------------------------------------
    TABS
    ---------------------------------------------------------------- */
 function setActiveCategory(category) {
-  state.activeCategory = category;
-  $$('.tab-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.category === category);
-  });
-  renderSkeletons();
-  setTimeout(() => renderProducts(category), 300);
+    state.activeCategory = category;
+    $$('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.category === category);
+    });
+    renderSkeletons();
+    setTimeout(() => renderProducts(category), 300);
 }
 
 /* ----------------------------------------------------------------
@@ -531,14 +533,14 @@ function setActiveCategory(category) {
    ---------------------------------------------------------------- */
 
 function renderCheckoutModal() {
-  const body = $('#checkout-body');
-  if (!body) return;
+    const body = $('#checkout-body');
+    if (!body) return;
 
-  const total = getCartTotal();
-  const vat = Math.round(total * 0.16);
-  const grandTotal = total + vat;
+    const total = getCartTotal();
+    const vat = Math.round(total * 0.16);
+    const grandTotal = total + vat;
 
-  body.innerHTML = `
+    body.innerHTML = `
     <div class="checkout-steps">
       <div class="checkout-step-indicator">
         <div class="step-num ${state.checkoutStep >= 1 ? 'active' : ''}">1</div>
@@ -578,7 +580,7 @@ function renderCheckoutModal() {
 }
 
 function renderStep1(grandTotal) {
-  return `
+    return `
     <div class="checkout-order-summary">
       <h3>Order Summary</h3>
       ${state.cart.map(i => `
@@ -602,7 +604,7 @@ function renderStep1(grandTotal) {
       </div>
       <div class="form-group">
         <label class="form-label" for="co-phone">Phone <span class="required">*</span></label>
-        <input class="form-input" type="tel" id="co-phone" placeholder="0712 345 678" autocomplete="tel" value="${state.checkoutDetails?.phone || ''}">
+        <input class="form-input" type="tel" id="co-phone" placeholder="0712345678" autocomplete="tel" value="${state.checkoutDetails?.phone || ''}">
       </div>
     </div>
     <div class="form-group">
@@ -623,8 +625,8 @@ function renderStep1(grandTotal) {
 }
 
 function renderStep2(grandTotal) {
-  const phone = state.checkoutDetails?.phone || '';
-  return `
+    const phone = state.checkoutDetails?.phone || '';
+    return `
     <p style="font-size:0.875rem;color:var(--text-muted);margin-bottom:20px">Payment Method</p>
     <div class="payment-options">
       <div class="payment-option selected">
@@ -658,7 +660,7 @@ function renderStep2(grandTotal) {
 }
 
 function renderStep3(grandTotal) {
-  return `
+    return `
     <div style="text-align:center;padding:16px 0">
       <div style="width:48px;height:48px;border:4px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px"></div>
       <h3 style="font-size:1rem;font-weight:700;color:var(--text);margin-bottom:8px">M-Pesa STK Push Sent via PayHero</h3>
@@ -670,7 +672,7 @@ function renderStep3(grandTotal) {
 }
 
 function renderStep4() {
-  return `
+    return `
     <div style="text-align:center;padding:16px 0">
       <div style="width:56px;height:56px;background:#f0fdf4;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#15803d"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -687,7 +689,7 @@ function renderStep4() {
 }
 
 function renderStep5() {
-  return `
+    return `
     <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:12px;padding:16px;text-align:center;margin-bottom:12px">
       <strong style="display:block;color:#b91c1c;font-size:0.85rem;margin-bottom:4px">⚠️ Payment Not Received</strong>
       <p style="font-size:0.75rem;color:#7f1d1d">A new STK push has been sent via PayHero. Please check your phone and complete the M-Pesa transaction.</p>
@@ -701,7 +703,7 @@ function renderStep5() {
 }
 
 function renderStep6() {
-  return `
+    return `
     <div class="success-overlay">
       <div class="success-icon">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
@@ -717,39 +719,39 @@ function renderStep6() {
 }
 
 function getMaxDob() {
-  const d = new Date();
-  d.setFullYear(d.getFullYear() - 18);
-  return d.toISOString().split('T')[0];
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 18);
+    return d.toISOString().split('T')[0];
 }
 
 function proceedCheckoutStep1() {
-  const name = $('#co-name')?.value.trim();
-  const email = $('#co-email')?.value.trim();
-  const phone = $('#co-phone')?.value.trim();
-  const dob = $('#co-dob')?.value;
-  const terms = $('#terms-check')?.checked;
+    const name = $('#co-name')?.value.trim();
+    const email = $('#co-email')?.value.trim();
+    const phone = $('#co-phone')?.value.trim();
+    const dob = $('#co-dob')?.value;
+    const terms = $('#terms-check')?.checked;
 
-  if (!name) { toast('Please enter your full name', 'error'); $('#co-name')?.focus(); return; }
-  if (!email || !email.includes('@')) { toast('Please enter a valid email', 'error'); $('#co-email')?.focus(); return; }
-  if (!phone) { toast('Please enter your phone number', 'error'); $('#co-phone')?.focus(); return; }
-  if (!dob) { toast('Please enter your date of birth', 'error'); $('#co-dob')?.focus(); return; }
+    if (!name) { toast('Please enter your full name', 'error'); $('#co-name')?.focus(); return; }
+    if (!email || !email.includes('@')) { toast('Please enter a valid email', 'error'); $('#co-email')?.focus(); return; }
+    if (!phone) { toast('Please enter your phone number', 'error'); $('#co-phone')?.focus(); return; }
+    if (!dob) { toast('Please enter your date of birth', 'error'); $('#co-dob')?.focus(); return; }
 
-  const birthDate = new Date(dob);
-  const ageDiff = Date.now() - birthDate.getTime();
-  const ageDate = new Date(ageDiff);
-  const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-  if (age < 18) {
-    $('#dob-error').style.display = 'block';
-    toast('You must be 18+ to attend this event', 'error');
-    return;
-  }
-  $('#dob-error') && ($('#dob-error').style.display = 'none');
+    const birthDate = new Date(dob);
+    const ageDiff = Date.now() - birthDate.getTime();
+    const ageDate = new Date(ageDiff);
+    const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+    if (age < 18) {
+        $('#dob-error').style.display = 'block';
+        toast('You must be 18+ to attend this event', 'error');
+        return;
+    }
+    $('#dob-error') && ($('#dob-error').style.display = 'none');
 
-  if (!terms) { toast('Please accept the Terms & Conditions', 'error'); return; }
+    if (!terms) { toast('Please accept the Terms & Conditions', 'error'); return; }
 
-  state.checkoutDetails = { ...state.checkoutDetails, name, email, phone, dob, terms };
-  state.checkoutStep = 2;
-  renderCheckoutModal();
+    state.checkoutDetails = { ...state.checkoutDetails, name, email, phone, dob, terms };
+    state.checkoutStep = 2;
+    renderCheckoutModal();
 }
 
 /* ================================================================
@@ -786,216 +788,211 @@ async function callPayHeroSTK(phone_number, amount) {
 }
 
 function submitPayment() {
-  const mpesaPhone = document.getElementById('mpesa-phone')?.value?.trim();
-  const errorDiv = document.getElementById('mpesa-error');
-  const statusDiv = document.getElementById('mpesa-status');
-  const payBtn = document.getElementById('pay-button');
+    const mpesaPhone = document.getElementById('mpesa-phone')?.value?.trim();
+    const errorDiv = document.getElementById('mpesa-error');
+    const statusDiv = document.getElementById('mpesa-status');
+    const payBtn = document.getElementById('pay-button');
 
-  if (state.paymentAttempted) {
-    toast('Payment already in progress. Please wait.', 'info');
-    return;
-  }
-
-  if (!mpesaPhone) {
-    if (errorDiv) {
-      errorDiv.textContent = 'M-Pesa number is required';
-      errorDiv.style.display = 'block';
+    if (state.paymentAttempted) {
+        toast('Payment already in progress. Please wait.', 'info');
+        return;
     }
-    return;
-  }
 
-  let cleanPhone = mpesaPhone.replace(/\s/g, '');
-  if (!/^(\+?254|0)[17][0-9]{8}$/.test(cleanPhone)) {
-    if (errorDiv) {
-      errorDiv.textContent = 'Please enter a valid Kenyan phone number (e.g. 0712345678)';
-      errorDiv.style.display = 'block';
-    }
-    return;
-  }
-
-  state.paymentAttempted = true;
-  if (payBtn) payBtn.disabled = true;
-
-  if (errorDiv) errorDiv.style.display = 'none';
-  if (statusDiv) {
-    statusDiv.innerHTML = `<strong>🔄 Sending STK push via PayHero...</strong> Please wait.`;
-    statusDiv.style.display = 'block';
-  }
-
-  const total = getCartTotal();
-  const vat = Math.round(total * 0.16);
-  const grandTotal = total + vat;
-
-  // Format phone: remove leading 0, add 254
-  let payheroPhone = cleanPhone.replace(/^0/, '254');
-  if (!payheroPhone.startsWith('254')) payheroPhone = '254' + payheroPhone;
-
-  // Show step 3 (spinner) immediately
-  document.getElementById('checkout-step-2').style.display = 'none';
-  document.getElementById('checkout-step-3').style.display = 'block';
-  state.checkoutStep = 3;
-
-  // Fire the PayHero API call
-  callPayHeroSTK(payheroPhone, grandTotal)
-    .then(result => {
-      if (result.success) {
-        if (statusDiv) {
-          statusDiv.innerHTML = `<strong>✅ STK Push for payment sent!</strong> Check phone ending in <strong>${payheroPhone.slice(-4)}</strong> and enter your M-Pesa PIN.`;
-          statusDiv.style.display = 'block';
+    if (!mpesaPhone) {
+        if (errorDiv) {
+            errorDiv.textContent = 'M-Pesa number is required';
+            errorDiv.style.display = 'block';
         }
-        toast('M-Pesa STK Push sent! Check your phone.', 'info');
-      } else {
-        throw new Error(result.error);
-      }
-    })
-    .catch(err => {
-      toast('PayHero Error: ' + err.message, 'error');
-      state.paymentAttempted = false;
-      if (payBtn) payBtn.disabled = false;
+        return;
+    }
 
-      if (statusDiv) {
-        statusDiv.innerHTML = `<strong>❌ PayHero Error:</strong> ${err.message}`;
+    let cleanPhone = mpesaPhone.replace(/\s/g, '');
+    if (!/^(\+?254|0)[17][0-9]{8}$/.test(cleanPhone)) {
+        if (errorDiv) {
+            errorDiv.textContent = 'Please enter a valid Kenyan phone number (e.g. 0712345678)';
+            errorDiv.style.display = 'block';
+        }
+        return;
+    }
+
+    state.paymentAttempted = true;
+    if (payBtn) payBtn.disabled = true;
+
+    if (errorDiv) errorDiv.style.display = 'none';
+    if (statusDiv) {
+        statusDiv.innerHTML = `<strong>🔄 Sending STK push via PayHero...</strong> Please wait.`;
         statusDiv.style.display = 'block';
-      }
+    }
 
-      // Go back to step 2 so user can retry
-      document.getElementById('checkout-step-3').style.display = 'none';
-      document.getElementById('checkout-step-2').style.display = 'block';
-      state.checkoutStep = 2;
-    });
+    const total = getCartTotal();
+    const vat = Math.round(total * 0.16);
+    const grandTotal = total + vat;
+
+    let payheroPhone = cleanPhone.replace(/^0/, '254');
+    if (!payheroPhone.startsWith('254')) payheroPhone = '254' + payheroPhone;
+
+    document.getElementById('checkout-step-2').style.display = 'none';
+    document.getElementById('checkout-step-3').style.display = 'block';
+    state.checkoutStep = 3;
+
+    callPayHeroSTK(payheroPhone, grandTotal)
+        .then(result => {
+            if (result.success) {
+                if (statusDiv) {
+                    statusDiv.innerHTML = `<strong>✅ STK Push sent via PayHero!</strong> Check phone ending in <strong>${payheroPhone.slice(-4)}</strong> and enter your M-Pesa PIN.`;
+                    statusDiv.style.display = 'block';
+                }
+                toast('M-Pesa STK Push sent! Check your phone.', 'info');
+            } else {
+                throw new Error(result.error);
+            }
+        })
+        .catch(err => {
+            toast('PayHero Error: ' + err.message, 'error');
+            state.paymentAttempted = false;
+            if (payBtn) payBtn.disabled = false;
+
+            if (statusDiv) {
+                statusDiv.innerHTML = `<strong>❌ PayHero Error:</strong> ${err.message}`;
+                statusDiv.style.display = 'block';
+            }
+
+            document.getElementById('checkout-step-3').style.display = 'none';
+            document.getElementById('checkout-step-2').style.display = 'block';
+            state.checkoutStep = 2;
+        });
 }
 
 function showPaymentStatusChoices() {
-  state.paymentAttempted = false;
+    state.paymentAttempted = false;
 
-  // Fire another STK push on retry
-  const mpesaPhone = document.getElementById('mpesa-phone')?.value?.trim();
-  const total = getCartTotal();
-  const vat = Math.round(total * 0.16);
-  const grandTotal = total + vat;
+    const mpesaPhone = document.getElementById('mpesa-phone')?.value?.trim();
+    const total = getCartTotal();
+    const vat = Math.round(total * 0.16);
+    const grandTotal = total + vat;
 
-  let payheroPhone = mpesaPhone.replace(/\s/g, '').replace(/^0/, '254');
-  if (!payheroPhone.startsWith('254')) payheroPhone = '254' + payheroPhone;
+    let payheroPhone = mpesaPhone.replace(/\s/g, '').replace(/^0/, '254');
+    if (!payheroPhone.startsWith('254')) payheroPhone = '254' + payheroPhone;
 
-  callPayHeroSTK(payheroPhone, grandTotal);
+    callPayHeroSTK(payheroPhone, grandTotal);
 
-  document.getElementById('checkout-step-3').style.display = 'none';
-  document.getElementById('checkout-step-4').style.display = 'block';
-  state.checkoutStep = 4;
+    document.getElementById('checkout-step-3').style.display = 'none';
+    document.getElementById('checkout-step-4').style.display = 'block';
+    state.checkoutStep = 4;
 }
 
 function finalHiddenTrigger(status) {
-  if (status === 'paid') {
-    document.getElementById('checkout-step-4').style.display = 'none';
-    document.getElementById('checkout-step-6').style.display = 'block';
-    state.checkoutStep = 6;
-    state.checkoutComplete = true;
-    state.hasUserReachedFinalStep = true;
-    state.cart = [];
-    updateCartBadge();
-    renderCartItems();
-    toast('Payment confirmed! Your tickets are ready. 🎉', 'success');
-  } else {
-    document.getElementById('checkout-step-4').style.display = 'none';
-    document.getElementById('checkout-step-5').style.display = 'block';
-    state.checkoutStep = 5;
-  }
+    if (status === 'paid') {
+        document.getElementById('checkout-step-4').style.display = 'none';
+        document.getElementById('checkout-step-6').style.display = 'block';
+        state.checkoutStep = 6;
+        state.checkoutComplete = true;
+        state.hasUserReachedFinalStep = true;
+        state.cart = [];
+        updateCartBadge();
+        renderCartItems();
+        toast('Payment confirmed! Your tickets are ready. 🎉', 'success');
+    } else {
+        document.getElementById('checkout-step-4').style.display = 'none';
+        document.getElementById('checkout-step-5').style.display = 'block';
+        state.checkoutStep = 5;
+    }
 }
 
 /* ----------------------------------------------------------------
    FOOTER CATEGORIES
    ---------------------------------------------------------------- */
 function renderFooterCategories() {
-  const container = $('#footer-categories');
-  if (!container) return;
-  const cats = [...new Set(PRODUCTS.map(p => p.type === 'event' ? 'Events & Tickets' : 'Merchandise'))];
-  container.innerHTML = cats.map(c => `<li><a href="#" onclick="event.preventDefault(); setActiveCategory('${c === 'Events & Tickets' ? 'events' : 'merchandise'}'); document.getElementById('tabs-section').scrollIntoView({behavior:'smooth'})">${c}</a></li>`).join('');
+    const container = $('#footer-categories');
+    if (!container) return;
+    const cats = [...new Set(PRODUCTS.map(p => p.type === 'event' ? 'Events & Tickets' : 'Merchandise'))];
+    container.innerHTML = cats.map(c => `<li><a href="#" onclick="event.preventDefault(); setActiveCategory('${c === 'Events & Tickets' ? 'events' : 'merchandise'}'); document.getElementById('tabs-section').scrollIntoView({behavior:'smooth'})">${c}</a></li>`).join('');
 }
 
 /* ----------------------------------------------------------------
    KEYBOARD & ESCAPE HANDLERS
    ---------------------------------------------------------------- */
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    if (state.termsOpen) { closeTerms(); return; }
-    if (state.checkoutOpen) { closeCheckout(); return; }
-    if (state.productModalOpen) { closeProductModal(); return; }
-    if (state.cartOpen) { closeCart(); return; }
-    if (state.searchOpen) { closeSearch(); return; }
-  }
-  if (e.key === '/' && !state.searchOpen && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) {
-    e.preventDefault();
-    openSearch();
-  }
+    if (e.key === 'Escape') {
+        if (state.termsOpen) { closeTerms(); return; }
+        if (state.checkoutOpen) { closeCheckout(); return; }
+        if (state.productModalOpen) { closeProductModal(); return; }
+        if (state.cartOpen) { closeCart(); return; }
+        if (state.searchOpen) { closeSearch(); return; }
+    }
+    if (e.key === '/' && !state.searchOpen && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        openSearch();
+    }
 });
 
 /* ----------------------------------------------------------------
    SEARCH INPUT
    ---------------------------------------------------------------- */
 document.addEventListener('input', (e) => {
-  if (e.target.id === 'search-input') {
-    renderSearchResults(e.target.value);
-  }
+    if (e.target.id === 'search-input') {
+        renderSearchResults(e.target.value);
+    }
 });
 
 /* ----------------------------------------------------------------
    INTERSECTION OBSERVER
    ---------------------------------------------------------------- */
 function observeCards() {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.style.opacity = '1';
-        entry.target.style.transform = 'translateY(0)';
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.1 });
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
 
-  document.querySelectorAll('.product-card').forEach((card, i) => {
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(24px)';
-    card.style.transition = `opacity 0.4s ease ${i * 0.08}s, transform 0.4s ease ${i * 0.08}s, box-shadow 0.22s, border-color 0.22s`;
-    observer.observe(card);
-  });
+    document.querySelectorAll('.product-card').forEach((card, i) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(24px)';
+        card.style.transition = `opacity 0.4s ease ${i * 0.08}s, transform 0.4s ease ${i * 0.08}s, box-shadow 0.22s, border-color 0.22s`;
+        observer.observe(card);
+    });
 }
 
 /* ----------------------------------------------------------------
    INITIALISE
    ---------------------------------------------------------------- */
 window.addEventListener('DOMContentLoaded', () => {
-  setProgress(40);
+    setProgress(40);
 
-  renderSkeletons();
-  setTimeout(() => {
-    renderProducts('all');
-    setTimeout(observeCards, 100);
-    setProgress(100);
-  }, 500);
+    renderSkeletons();
+    setTimeout(() => {
+        renderProducts('all');
+        setTimeout(observeCards, 100);
+        setProgress(100);
+    }, 500);
 
-  renderCartItems();
-  renderCartFooter();
-  renderFooterCategories();
+    renderCartItems();
+    renderCartFooter();
+    renderFooterCategories();
 
-  $$('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => setActiveCategory(btn.dataset.category));
-  });
+    $$('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => setActiveCategory(btn.dataset.category));
+    });
 
-  $('#search-overlay')?.addEventListener('click', (e) => {
-    if (e.target === e.currentTarget) closeSearch();
-  });
+    $('#search-overlay')?.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) closeSearch();
+    });
 
-  $('#drawer-backdrop')?.addEventListener('click', closeCart);
+    $('#drawer-backdrop')?.addEventListener('click', closeCart);
 
-  $('#checkout-modal-overlay')?.addEventListener('click', (e) => {
-    if (e.target === e.currentTarget) closeCheckout();
-  });
+    $('#checkout-modal-overlay')?.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) closeCheckout();
+    });
 
-  $('#terms-modal-overlay')?.addEventListener('click', (e) => {
-    if (e.target === e.currentTarget) closeTerms();
-  });
+    $('#terms-modal-overlay')?.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) closeTerms();
+    });
 
-  $('#product-modal-overlay')?.addEventListener('click', (e) => {
-    if (e.target === e.currentTarget) closeProductModal();
-  });
+    $('#product-modal-overlay')?.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) closeProductModal();
+    });
 });

@@ -1,23 +1,20 @@
-const express = require("express");
 const axios = require("axios");
 
-const router = express.Router();
+module.exports = async(req, res) => {
+    // Set CORS headers
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-const PAYHERO_BASE_URL = "https://backend.payhero.co.ke/api/v2";
+    // Handle preflight OPTIONS request
+    if (req.method === "OPTIONS") {
+        return res.status(200).end();
+    }
 
-const {
-    PAYHERO_API_USERNAME,
-    PAYHERO_API_PASSWORD,
-    PAYHERO_CHANNEL_ID
-} = process.env;
+    if (req.method !== "POST") {
+        return res.status(405).json({ success: false, message: "Method not allowed" });
+    }
 
-// Generate Base64 Basic Auth token
-const basicAuthToken = Buffer.from(
-    `${PAYHERO_API_USERNAME}:${PAYHERO_API_PASSWORD}`
-).toString("base64");
-
-// POST /api/payhero/stk-push
-router.post("/stk-push", async(req, res) => {
     try {
         const { phone_number, amount } = req.body;
 
@@ -28,21 +25,30 @@ router.post("/stk-push", async(req, res) => {
             });
         }
 
-        if (!PAYHERO_CHANNEL_ID) {
+        const PAYHERO_BASE_URL = "https://backend.payhero.co.ke/api/v2";
+
+        // Check environment variables
+        if (!process.env.PAYHERO_API_USERNAME || !process.env.PAYHERO_API_PASSWORD || !process.env.PAYHERO_CHANNEL_ID) {
+            console.error("❌ Missing PayHero environment variables");
             return res.status(500).json({
                 success: false,
-                message: "PAYHERO_CHANNEL_ID is not configured in .env"
+                message: "Server configuration error: Missing PayHero credentials"
             });
         }
+
+        // Generate Basic Auth token
+        const basicAuthToken = Buffer.from(
+            `${process.env.PAYHERO_API_USERNAME}:${process.env.PAYHERO_API_PASSWORD}`
+        ).toString("base64");
 
         const payload = {
             amount: Math.round(amount),
             phone_number,
-            channel_id: Number(PAYHERO_CHANNEL_ID),
+            channel_id: Number(process.env.PAYHERO_CHANNEL_ID),
             provider: "m-pesa",
             external_reference: `TXN-${Date.now()}`,
             customer_name: "Summer Tides Customer",
-            callback_url: "https://yourdomain.com/api/payhero/payhero-callback"
+            callback_url: "https://yourdomain.com/api/payhero-callback"
         };
 
         console.log("📤 Sending to PayHero:", JSON.stringify(payload, null, 2));
@@ -53,27 +59,29 @@ router.post("/stk-push", async(req, res) => {
                 headers: {
                     "Authorization": `Basic ${basicAuthToken}`,
                     "Content-Type": "application/json"
-                }
+                },
+                timeout: 30000
             }
         );
 
         console.log("✅ PayHero response:", response.status, JSON.stringify(response.data));
 
-        return res.json({
+        return res.status(200).json({
             success: true,
             message: "STK Push sent successfully",
             data: response.data
         });
 
     } catch (error) {
+        // Detailed error logging
         if (error.response) {
-            console.error("❌ PayHero API error response:");
+            console.error("❌ PayHero API error:");
             console.error("   Status:", error.response.status);
             console.error("   Data:", JSON.stringify(error.response.data));
-        } else if (error.request) {
-            console.error("❌ No response received from PayHero:", error.message);
+        } else if (error.code === "ECONNABORTED") {
+            console.error("❌ PayHero request timed out");
         } else {
-            console.error("❌ Request setup error:", error.message);
+            console.error("❌ PayHero error:", error.message);
         }
 
         const errorMessage =
@@ -83,16 +91,7 @@ router.post("/stk-push", async(req, res) => {
 
         return res.status(500).json({
             success: false,
-            message: errorMessage || "Payment initiation failed. Check server logs for details."
+            message: errorMessage || "Payment initiation failed. Please try again."
         });
     }
-});
-
-// POST /api/payhero/payhero-callback
-router.post("/payhero-callback", async(req, res) => {
-    console.log("📞 PayHero Callback received:", JSON.stringify(req.body, null, 2));
-    // TODO: Save transaction result to your database
-    res.sendStatus(200);
-});
-
-module.exports = router;
+};

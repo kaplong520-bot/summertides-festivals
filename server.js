@@ -9,14 +9,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files (images, CSS, frontend JS)
+// Serve static files
 app.use(express.static(path.join(__dirname, "public")));
 
-// PayHero routes — mounted under /api/payhero
+// PayHero routes
 const payheroRoutes = require("./routes/payhero");
 app.use("/api/payhero", payheroRoutes);
 
-// Serve the main HTML page
+// Serve homepage
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
