@@ -11,6 +11,12 @@ const {
     PAYHERO_CHANNEL_ID
 } = process.env;
 
+// Generate Base64 Basic Auth token
+const basicAuthToken = Buffer.from(
+    `${PAYHERO_API_USERNAME}:${PAYHERO_API_PASSWORD}`
+).toString("base64");
+
+// POST /api/payhero/stk-push
 router.post("/stk-push", async(req, res) => {
     try {
         const { phone_number, amount } = req.body;
@@ -22,24 +28,36 @@ router.post("/stk-push", async(req, res) => {
             });
         }
 
+        if (!PAYHERO_CHANNEL_ID) {
+            return res.status(500).json({
+                success: false,
+                message: "PAYHERO_CHANNEL_ID is not configured in .env"
+            });
+        }
+
         const payload = {
-            amount,
+            amount: Math.round(amount),
             phone_number,
-            channel_id: PAYHERO_CHANNEL_ID,
+            channel_id: Number(PAYHERO_CHANNEL_ID),
             provider: "m-pesa",
             external_reference: `TXN-${Date.now()}`,
-            callback_url: "https://yourdomain.com/api/payhero-callback"
+            customer_name: "Summer Tides Customer",
+            callback_url: "https://yourdomain.com/api/payhero/payhero-callback"
         };
+
+        console.log("📤 Sending to PayHero:", JSON.stringify(payload, null, 2));
 
         const response = await axios.post(
             `${PAYHERO_BASE_URL}/payments`,
             payload, {
-                auth: {
-                    username: PAYHERO_API_USERNAME,
-                    password: PAYHERO_API_PASSWORD
+                headers: {
+                    "Authorization": `Basic ${basicAuthToken}`,
+                    "Content-Type": "application/json"
                 }
             }
         );
+
+        console.log("✅ PayHero response:", response.status, JSON.stringify(response.data));
 
         return res.json({
             success: true,
@@ -48,23 +66,34 @@ router.post("/stk-push", async(req, res) => {
         });
 
     } catch (error) {
+        // Log full error details for debugging
+        if (error.response) {
+            console.error("❌ PayHero API error response:");
+            console.error("   Status:", error.response.status);
+            console.error("   Data:", JSON.stringify(error.response.data));
+            console.error("   Headers:", JSON.stringify(error.response.headers));
+        } else if (error.request) {
+            console.error("❌ No response received from PayHero:", error.message);
+        } else {
+            console.error("❌ Request setup error:", error.message);
+        }
+
         const errorMessage =
             error.response &&
             error.response.data &&
-            error.response.data.message;
-
-        console.error("STK ERROR:", errorMessage || error.message);
+            (error.response.data.message || error.response.data.error || JSON.stringify(error.response.data));
 
         return res.status(500).json({
             success: false,
-            message: errorMessage || "Payment initiation failed"
+            message: errorMessage || "Payment initiation failed. Check server logs for details."
         });
     }
 });
 
-router.post("/payhero-callback", async (req, res) => {
-    console.log("PayHero Callback:", req.body);
-    // Log the transaction result to your database
+// POST /api/payhero/payhero-callback
+router.post("/payhero-callback", async(req, res) => {
+    console.log("📞 PayHero Callback received:", JSON.stringify(req.body, null, 2));
+    // TODO: Save transaction result to your database
     res.sendStatus(200);
 });
 
